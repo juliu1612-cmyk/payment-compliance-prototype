@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>支付页面合规原型 · Apple IAP Compliance Prototype</title>
+<style>
+  :root{
+    --page-bg:#f3f5f4;
+    --ink:#1a2320;
+    --phone-bg:#070b0a;
+    --card:#0e1714;
+    --card2:#101d18;
+    --line:#22382f;
+    --green:#3ddc84;
+    --green-soft:#7ef0b0;
+    --gold:#f5b942;
+    --dim:#8ba39a;
+    --badge:#d9f76d;
+    --red:#e5484d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--page-bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","PingFang SC",sans-serif;
+    color:var(--ink);
+    padding:32px 24px 48px;
+  }
+  h1{font-size:22px;margin-bottom:4px;}
+  .sub{font-size:13px;color:#5c6b64;margin-bottom:24px;}
+
+  /* ---------- pair rows ---------- */
+  .pair{margin-bottom:36px;}
+  .pair-head{
+    display:flex;align-items:center;gap:12px;margin-bottom:16px;
+  }
+  .pair-title{font-size:15px;font-weight:800;color:#1a2320;white-space:nowrap;}
+  .pair-title small{font-weight:500;color:#5c6b64;font-size:12px;margin-left:8px;}
+  .pair-head .rule{flex:1;height:1px;background:#d4dcd7;}
+  .zh-tag,.en-tag{
+    font-size:11px;font-weight:700;border-radius:8px;padding:3px 10px;white-space:nowrap;
+  }
+  .zh-tag{background:#e8f0ec;color:#2b5d4a;border:1px solid #bcd4c9;}
+  .en-tag{background:#ece9f5;color:#4a3f7a;border:1px solid #cbc4e8;}
+
+  .stage{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;}
+  .stage .phone.phone-zh{border-color:#2b5d4a;}
+  .stage .phone.phone-en{border-color:#4a3f7a;}
+
+  /* ---------- phone frame ---------- */
+  .phone{
+    width:375px;height:812px;flex:0 0 375px;
+    background:var(--phone-bg);
+    border-radius:44px;
+    border:8px solid #101614;
+    box-shadow:0 24px 48px rgba(0,0,0,.25);
+    overflow:hidden;position:relative;
+    color:#e8f2ec;display:flex;flex-direction:column;
+  }
+  .statusbar{
+    height:44px;display:flex;justify-content:space-between;align-items:center;
+    padding:0 22px;font-size:14px;font-weight:600;color:#fff;flex:0 0 44px;
+  }
+  .nav{
+    height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 16px;flex:0 0 44px;
+  }
+  .nav .title{font-size:17px;font-weight:700;color:#fff;}
+  .nav .back{font-size:20px;color:#fff;}
+  .nav .action{font-size:13px;color:var(--green);}
+  .body{flex:1;overflow-y:auto;padding:0 16px 24px;scrollbar-width:none;}
+  .body::-webkit-scrollbar{display:none;}
+
+  .coin{color:var(--gold);}
+  .balance-row{
+    display:flex;align-items:center;gap:8px;
+    font-size:14px;color:#cfe0d8;padding:10px 2px 12px;
+  }
+  .balance-row b{color:#fff;font-size:16px;}
+  .coin-ic{
+    display:inline-flex;width:16px;height:16px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#ffe08a,#f0a92d 70%);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);
+    vertical-align:-3px;
+  }
+
+  .sec{font-size:16px;font-weight:700;color:#fff;margin:14px 0 10px;}
+  .sec small{font-weight:500;color:var(--dim);font-size:12px;margin-left:8px;}
+
+  /* ---------- pack cards ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .pack{
+    background:linear-gradient(135deg,var(--card2),var(--card));
+    border:1px solid var(--line);border-radius:14px;padding:12px;
+    position:relative;
+  }
+  .pack .coins{font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:6px;}
+  .pack .coins .plus{color:var(--gold);font-size:14px;font-weight:700;}
+  .pack .note{font-size:10.5px;color:var(--dim);margin-top:6px;line-height:1.45;}
+  .pack .price{font-size:14px;font-weight:700;color:#fff;margin-top:8px;}
+  .pack.selected{
+    border:1.5px solid var(--green-soft);
+    box-shadow:0 0 0 3px rgba(61,220,132,.12),0 0 18px rgba(61,220,132,.18);
+  }
+  .off-badge{
+    position:absolute;top:-8px;right:10px;background:var(--badge);color:#1c2508;
+    font-size:10px;font-weight:800;border-radius:8px;padding:2px 7px;
+  }
+  .hot-badge{
+    display:inline-block;background:var(--badge);color:#1c2508;font-size:10px;
+    font-weight:800;border-radius:8px;padding:2px 7px;margin-left:6px;vertical-align:2px;
+  }
+
+  /* ---------- vip cards ---------- */
+  .vip{
+    background:linear-gradient(135deg,#12241d,#0b1512);
+    border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;
+  }
+  .vip.selected{border:1.5px solid var(--green-soft);box-shadow:0 0 18px rgba(61,220,132,.16);}
+  .vip .name{font-size:16px;font-weight:800;color:#fff;}
+  .vip .big{font-size:22px;font-weight:800;color:#fff;margin-top:4px;}
+  .vip .big s{font-size:13px;color:var(--dim);font-weight:500;margin-left:6px;}
+  .vip .big .per{font-size:12px;color:var(--dim);font-weight:500;}
+  .vip .desc{font-size:12px;color:#b9cec5;margin-top:4px;}
+  .vip .fine{font-size:10.5px;color:var(--dim);margin-top:6px;line-height:1.5;}
+
+  .disclosure{
+    border:1px dashed #2c5a45;border-radius:12px;background:rgba(61,220,132,.05);
+    padding:12px;margin:-2px 0 12px;
+  }
+  .disclosure h4{font-size:12px;color:var(--green-soft);margin-bottom:8px;font-weight:700;}
+  .disclosure .row{display:flex;font-size:11px;line-height:1.6;}
+  .disclosure .row .k{flex:0 0 100px;color:var(--dim);}
+  .disclosure .row .v{flex:1;color:#dff0e7;}
+  .disclosure .one-line{font-size:10.5px;color:#dff0e7;line-height:1.55;}
+
+  /* ---------- rules ---------- */
+  .rules{margin-top:18px;}
+  .rules h3{font-size:13px;color:#fff;margin-bottom:8px;}
+  .rules p{font-size:10.5px;color:#93a89f;line-height:1.65;margin-bottom:6px;}
+  .links{
+    display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;
+    font-size:11px;color:var(--green);
+  }
+
+  /* ---------- player screen ---------- */
+  .video{
+    height:300px;flex:0 0 300px;
+    background:linear-gradient(180deg,#2a2f2c 0%,#141816 60%,var(--phone-bg) 100%);
+    position:relative;
+  }
+  .video .vtitle{
+    position:absolute;top:52px;left:16px;right:16px;font-size:13px;color:#e6efe9;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .video .play{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;
+  }
+  .meta-row{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:#cfe0d8;padding:10px 2px;
+  }
+  .meta-row .right{color:var(--green);font-size:12px;}
+
+  /* ---------- compliance tags ---------- */
+  .ctag{
+    display:inline-block;border:1.5px dashed var(--red);color:var(--red);
+    background:rgba(229,72,77,.08);border-radius:8px;
+    font-size:10px;font-weight:700;padding:1px 6px;margin-left:6px;vertical-align:1px;
+    white-space:nowrap;
+  }
+  .ctag.on-card{position:absolute;top:-9px;left:10px;margin-left:0;background:#fff;}
+
+  /* ---------- legend ---------- */
+  .legend{
+    margin-top:32px;background:#fff;border:1px solid #e2e7e4;border-radius:14px;
+    padding:20px 22px;max-width:1200px;
+  }
+  .legend h2{font-size:16px;margin-bottom:12px;}
+  .legend table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .legend th,.legend td{border-bottom:1px solid #eef1ef;padding:9px 10px;text-align:left;vertical-align:top;line-height:1.55;}
+  .legend th{background:#f6f8f7;font-weight:700;color:#33413b;}
+  .legend td .n{
+    display:inline-block;border:1.5px dashed var(--red);color:var(--red);
+    border-radius:8px;font-size:11px;font-weight:700;padding:1px 7px;margin-right:6px;
+  }
+  .legend .del{color:#a2564f;text-decoration:line-through;}
+  .legend .ok{color:#1c7a4b;font-weight:600;}
+</style>
+</head>
+<body>
+
+<h1>支付页面合规原型（Apple IAP 修正版）</h1>
+<div class="sub">中英左右对照 · 三屏：充值（充值/券包订阅/会员订阅）· 订阅管理 · 观剧页金币弹层。每行左中文右英文同屏对位，虚线红标 ①–⑤ 为合规修正点，见底部图例。</div>
+
+<!-- ==================== Row 1 : 充值 / Top Up ==================== -->
+<div class="pair">
+  <div class="pair-head">
+    <span class="pair-title">充值 <small>Top Up · 充值 / 券包订阅 / 会员订阅</small></span>
+    <span class="rule"></span>
+    <span class="zh-tag">中文 zh-CN</span>
+    <span class="en-tag">English en-US</span>
+  </div>
+  <div class="stage">
+
+  <!-- 中文 -->
+  <div class="phone phone-zh">
+    <div class="statusbar"><span>1:07</span><span>📶 🔋</span></div>
+    <div class="nav"><span class="back">‹</span><span class="title">充值</span><span class="action">恢复购买</span></div>
+    <div class="body">
+
+      <div class="balance-row">我的余额：<span class="coin-ic"></span><b>2345</b></div>
+
+      <div class="sec">金币充值 <small>金币永久有效</small></div>
+      <div class="grid2">
+        <div class="pack selected">
+          <span class="ctag on-card">合规①</span>
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$4.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>1,099 <span class="plus">+120</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$8.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>2,799 <span class="plus">+350</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$19.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>5,499 <span class="plus">+800</span><span class="hot-badge">+15% 🔥</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$34.99</div>
+        </div>
+      </div>
+
+      <div class="sec">订阅会员</div>
+
+      <div class="vip selected">
+        <span class="off-badge">限时 33% OFF</span>
+        <div class="name">周卡会员</div>
+        <div class="big">US$29.99 <s>US$39.99</s></div>
+        <div class="desc">7 天全站畅看 · 立即生效</div>
+        <div class="fine">首周 US$9.99 → US$12.99/周 · 自动续费 · 可随时取消 · 每日 200 赠币为活动奖励</div>
+      </div>
+      <div class="disclosure">
+        <span class="ctag on-card">合规③</span>
+        <p class="one-line">US$29.99/周（首周 US$9.99）→ US$12.99/周 · 自动续费 · 到期前 24 小时可取消 · 取消入口：App Store</p>
+      </div>
+
+      <div class="vip">
+        <div class="name">月卡会员</div>
+        <div class="big">US$59.99 <span class="per">/月</span></div>
+        <div class="desc">30 天全站畅看 · 立即生效</div>
+        <div class="fine">US$59.99/月 · 自动续费 · 可随时取消</div>
+      </div>
+
+      <div class="sec">金币券包 <small>订阅制 · 自动续费</small></div>
+
+      <div class="vip selected">
+        <span class="ctag on-card">合规③</span>
+        <div class="name">金币券包 · 周订阅</div>
+        <div class="big">US$9.99 <span class="per">/周</span></div>
+        <div class="desc">每期立即发放 <b style="color:var(--gold)">549 金币（永久）+ 50 赠币</b></div>
+        <div class="fine">每日可领 200 赠币 · 活动奖励 · 自愿领取</div>
+      </div>
+      <div class="disclosure">
+        <span class="ctag on-card">合规③</span>
+        <p class="one-line">US$9.99/周 · 自动续费 · 到期前 24 小时可取消 · 每期发放 549 金币 + 50 赠币 · 取消入口：App Store</p>
+      </div>
+
+      <div class="rules">
+        <h3>会员与购买规则</h3>
+        <p>1. 金币永久有效 · 赠币为活动奖励（7 天）<span class="ctag">合规①</span></p>
+        <p>2. <span class="ctag">合规②</span> 退款：Apple 官方渠道 · 以 Apple 审核为准 · 订单异常联系客服</p>
+        <p>3. 订阅自动续费 · 可随时在 App Store 取消</p>
+        <div class="links">
+          <span>服务条款（EULA）</span><span>隐私政策</span><span>联系客服</span><span>管理订阅</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- English -->
+  <div class="phone phone-en">
+    <div class="statusbar"><span>1:07</span><span>📶 🔋</span></div>
+    <div class="nav"><span class="back">‹</span><span class="title">Top Up</span><span class="action">Restore</span></div>
+    <div class="body">
+
+      <div class="balance-row">My Balance: <span class="coin-ic"></span><b>2345</b></div>
+
+      <div class="sec">Refill <small>Coins never expire</small></div>
+      <div class="grid2">
+        <div class="pack selected">
+          <span class="ctag on-card">合规①</span>
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$4.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>1,099 <span class="plus">+120</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$8.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>2,799 <span class="plus">+350</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$19.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>5,499 <span class="plus">+800</span><span class="hot-badge">+15% 🔥</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$34.99</div>
+        </div>
+      </div>
+
+      <div class="sec">VIP Subscription</div>
+
+      <div class="vip selected">
+        <span class="off-badge">33% OFF</span>
+        <div class="name">Weekly VIP</div>
+        <div class="big">US$29.99 <s>US$39.99</s></div>
+        <div class="desc">All series unlocked for 7 days · Instant access</div>
+        <div class="fine">First week US$9.99 → US$12.99/week · Auto-renews · Cancel anytime · Daily 200 Bonus = activity reward</div>
+      </div>
+      <div class="disclosure">
+        <span class="ctag on-card">合规③</span>
+        <p class="one-line">US$29.99/week (first week US$9.99) → US$12.99/week · Auto-renews · Cancel up to 24h before renewal · Cancel in App Store</p>
+      </div>
+
+      <div class="vip">
+        <div class="name">Monthly VIP</div>
+        <div class="big">US$59.99 <span class="per">/month</span></div>
+        <div class="desc">All series unlocked for 30 days · Instant access</div>
+        <div class="fine">US$59.99/month · Auto-renews · Cancel anytime</div>
+      </div>
+
+      <div class="sec">Coin Pack <small>Subscription · Auto-renews</small></div>
+
+      <div class="vip selected">
+        <span class="ctag on-card">合规③</span>
+        <div class="name">Coin Pack · Weekly</div>
+        <div class="big">US$9.99 <span class="per">/week</span></div>
+        <div class="desc">Each period: <b style="color:var(--gold)">549 Coins (never expire) + 50 Bonus</b>, delivered instantly</div>
+        <div class="fine">200 Bonus Coins daily · Activity reward · Optional claim</div>
+      </div>
+      <div class="disclosure">
+        <span class="ctag on-card">合规③</span>
+        <p class="one-line">US$9.99/week · Auto-renews · Cancel up to 24h before renewal · Each period: 549 Coins + 50 Bonus · Cancel in App Store</p>
+      </div>
+
+      <div class="rules">
+        <h3>Purchase Rules</h3>
+        <p>1. Coins never expire · Bonus = activity reward (7 days) <span class="ctag">合规①</span></p>
+        <p>2. <span class="ctag">合规②</span> Refunds: via Apple only, subject to Apple's review · Order issues → Support</p>
+        <p>3. Subscriptions auto-renew · Cancel anytime in App Store</p>
+        <div class="links">
+          <span>Terms of Use (EULA)</span><span>Privacy Policy</span><span>Support</span><span>Manage Subscription</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ==================== Row 2 : 订阅管理 / Subscriptions ==================== -->
+<div class="pair">
+  <div class="pair-head">
+    <span class="pair-title">订阅管理 <small>Subscriptions · 生效中 / 已到期</small></span>
+    <span class="rule"></span>
+    <span class="zh-tag">中文 zh-CN</span>
+    <span class="en-tag">English en-US</span>
+  </div>
+  <div class="stage">
+
+  <!-- 中文 -->
+  <div class="phone phone-zh">
+    <div class="statusbar"><span>1:07</span><span>📶 🔋</span></div>
+    <div class="nav"><span class="back">‹</span><span class="title">订阅管理</span><span></span></div>
+    <div class="body">
+
+      <div class="sec">会员订阅</div>
+
+      <div class="vip selected">
+        <span class="ctag on-card">合规③</span>
+        <div class="name">我的会员 · 周卡</div>
+        <div class="desc" style="margin-top:6px;">状态：<b style="color:var(--green)">生效中</b></div>
+        <div class="fine">下次续费 2026/10/07 · US$12.99/周</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <div style="flex:1;text-align:center;border:1px solid var(--green);color:var(--green);border-radius:10px;padding:8px 0;font-size:12px;font-weight:700;">管理订阅 ↗</div>
+          <div style="flex:1;text-align:center;border:1px solid var(--line);color:#cfe0d8;border-radius:10px;padding:8px 0;font-size:12px;">取消自动续费</div>
+        </div>
+        <div class="fine" style="margin-top:6px;">管理订阅/取消将跳转 App Store 订阅管理页 ↗</div>
+      </div>
+
+      <div class="vip">
+        <div class="name">我的会员 · 周卡</div>
+        <div class="desc" style="margin-top:6px;">状态：已到期 · 2026/09/22</div>
+        <div class="fine">可随时重新订阅。</div>
+      </div>
+
+      <div class="vip">
+        <div class="name">我的会员 · 月卡</div>
+        <div class="desc" style="margin-top:6px;">状态：已到期 · 2026/09/22</div>
+        <div class="fine">可随时重新订阅。</div>
+      </div>
+
+      <div class="disclosure">
+        <h4>自动续费说明</h4>
+        <div class="row"><span class="k">扣费方式</span><span class="v">Apple ID 账户</span></div>
+        <div class="row"><span class="k">续费规则</span><span class="v">到期前 24 小时未取消 → 自动续费</span></div>
+        <div class="row"><span class="k">取消之后</span><span class="v">权益保留至本期结束</span></div>
+        <div class="row"><span class="k">退款说明</span><span class="v">Apple 官方渠道 · 以审核为准 <span class="ctag">合规②</span></span></div>
+      </div>
+
+      <div class="rules">
+        <h3>订阅奖励</h3>
+        <p>会员权益购买后立即发放 · 每日赠币为<b style="color:#dff0e7">自愿领取的活动奖励</b><span class="ctag">合规④</span></p>
+        <div class="links">
+          <span>恢复购买</span><span>服务条款（EULA）</span><span>隐私政策</span><span>联系客服</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- English -->
+  <div class="phone phone-en">
+    <div class="statusbar"><span>1:07</span><span>📶 🔋</span></div>
+    <div class="nav"><span class="back">‹</span><span class="title">Subscriptions</span><span></span></div>
+    <div class="body">
+
+      <div class="sec">My Subscriptions</div>
+
+      <div class="vip selected">
+        <span class="ctag on-card">合规③</span>
+        <div class="name">My VIP · Weekly</div>
+        <div class="desc" style="margin-top:6px;">Status: <b style="color:var(--green)">Active</b></div>
+        <div class="fine">Next renewal Oct 7, 2026 · US$12.99/week</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <div style="flex:1;text-align:center;border:1px solid var(--green);color:var(--green);border-radius:10px;padding:8px 0;font-size:12px;font-weight:700;">Manage Subscription ↗</div>
+          <div style="flex:1;text-align:center;border:1px solid var(--line);color:#cfe0d8;border-radius:10px;padding:8px 0;font-size:12px;">Cancel Auto-Renewal</div>
+        </div>
+        <div class="fine" style="margin-top:6px;">Opens the App Store subscription page ↗</div>
+      </div>
+
+      <div class="vip">
+        <div class="name">My VIP · Weekly</div>
+        <div class="desc" style="margin-top:6px;">Status: Expired · Sep 22, 2026</div>
+        <div class="fine">Resubscribe anytime.</div>
+      </div>
+
+      <div class="vip">
+        <div class="name">My VIP · Monthly</div>
+        <div class="desc" style="margin-top:6px;">Status: Expired · Sep 22, 2026</div>
+        <div class="fine">Resubscribe anytime.</div>
+      </div>
+
+      <div class="disclosure">
+        <h4>Auto-Renewal Details</h4>
+        <div class="row"><span class="k">Charged to</span><span class="v">Apple ID account</span></div>
+        <div class="row"><span class="k">Renewal</span><span class="v">Auto-renews unless cancelled 24h before period end</span></div>
+        <div class="row"><span class="k">After cancel</span><span class="v">Benefits stay until period end</span></div>
+        <div class="row"><span class="k">Refunds</span><span class="v">Via Apple only · Subject to review <span class="ctag">合规②</span></span></div>
+      </div>
+
+      <div class="rules">
+        <h3>Subscriber Rewards</h3>
+        <p>All VIP benefits delivered immediately upon purchase · Daily Bonus Coins are an <b style="color:#dff0e7">optional activity reward</b><span class="ctag">合规④</span></p>
+        <div class="links">
+          <span>Restore Purchase</span><span>Terms of Use (EULA)</span><span>Privacy Policy</span><span>Support</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ==================== Row 3 : 观剧页弹层 / Player Coin Sheet ==================== -->
+<div class="pair">
+  <div class="pair-head">
+    <span class="pair-title">观剧页金币弹层 <small>Player Coin Sheet · 券包 / 会员推荐</small></span>
+    <span class="rule"></span>
+    <span class="zh-tag">中文 zh-CN</span>
+    <span class="en-tag">English en-US</span>
+  </div>
+  <div class="stage">
+
+  <!-- 中文 -->
+  <div class="phone phone-zh">
+    <div class="video">
+      <div class="statusbar" style="background:transparent;"><span>1:07</span><span>📶 🔋</span></div>
+      <div class="vtitle"><span>‹&nbsp; 惩罚者的救赎 OrdersD...</span><span>1/345</span></div>
+      <div class="play">▶</div>
+    </div>
+    <div class="body" style="padding-top:0;">
+
+      <div class="meta-row">
+        <span>本集价格：<span class="coin-ic"></span> 12 &nbsp;·&nbsp; 余额：<span class="coin-ic"></span> 2345</span>
+        <span class="right">查看全部 ›</span>
+      </div>
+
+      <div class="pack selected" style="margin-bottom:10px;">
+        <span class="ctag on-card">合规④</span>
+        <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span> <span class="hot-badge">+80% 🔥</span></div>
+        <div class="note">每期发放：549 金币（永久）+ 50 赠币（活动奖励，7 天）<br><b style="color:#dff0e7">每日奖励：</b>200 赠币 · 自愿领取</div>
+        <div class="price">US$19.99 <span class="per" style="font-size:11px;color:var(--dim);font-weight:500;">/周 · 自动续费 <span class="ctag">合规③</span></span></div>
+      </div>
+
+      <div class="grid2">
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$4.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">金币永久有效 · 赠币为活动奖励（7 天）</div>
+          <div class="price">US$4.99</div>
+        </div>
+      </div>
+
+      <div class="vip selected" style="margin-top:12px;">
+        <span class="off-badge">限时 33% OFF</span>
+        <div class="name">周卡会员</div>
+        <div class="big">US$29.99 <span class="per">/周</span></div>
+        <div class="desc">7 天全站畅看 · 立即生效</div>
+        <div class="fine">US$12.99/周 · 自动续费 · 可随时取消<span class="ctag">合规③</span></div>
+      </div>
+
+      <div class="vip selected" style="margin-top:10px;">
+        <div class="name">月卡会员</div>
+        <div class="big">US$59.99 <span class="per">/月</span></div>
+        <div class="desc">30 天全站畅看</div>
+        <div class="fine">US$59.99/月 · 自动续费 · 可随时取消</div>
+      </div>
+
+      <div class="rules">
+        <p><span class="ctag">合规②</span> 金币永久有效 · 退款：Apple 官方渠道 · 以审核为准</p>
+        <div class="links">
+          <span>恢复购买</span><span>服务条款</span><span>隐私政策</span><span>联系客服</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- English -->
+  <div class="phone phone-en">
+    <div class="video">
+      <div class="statusbar" style="background:transparent;"><span>1:07</span><span>📶 🔋</span></div>
+      <div class="vtitle"><span>‹&nbsp; The Defender's Redemption...</span><span>1/345</span></div>
+      <div class="play">▶</div>
+    </div>
+    <div class="body" style="padding-top:0;">
+
+      <div class="meta-row">
+        <span>Episode price: <span class="coin-ic"></span> 12 &nbsp;·&nbsp; Balance: <span class="coin-ic"></span> 2345</span>
+        <span class="right">View all ›</span>
+      </div>
+
+      <div class="pack selected" style="margin-bottom:10px;">
+        <span class="ctag on-card">合规④</span>
+        <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span> <span class="hot-badge">+80% 🔥</span></div>
+        <div class="note">Each period: 549 Coins (never expire) + 50 Bonus (activity reward, 7 days)<br><b style="color:#dff0e7">Daily reward:</b> 200 Bonus · Optional claim</div>
+        <div class="price">US$19.99 <span class="per" style="font-size:11px;color:var(--dim);font-weight:500;">/week · Auto-renews <span class="ctag">合规③</span></span></div>
+      </div>
+
+      <div class="grid2">
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$4.99</div>
+        </div>
+        <div class="pack">
+          <div class="coins"><span class="coin-ic"></span>549 <span class="plus">+50</span></div>
+          <div class="note">Coins never expire · Bonus = activity reward (7 days)</div>
+          <div class="price">US$4.99</div>
+        </div>
+      </div>
+
+      <div class="vip selected" style="margin-top:12px;">
+        <span class="off-badge">33% OFF</span>
+        <div class="name">Weekly VIP</div>
+        <div class="big">US$29.99 <span class="per">/week</span></div>
+        <div class="desc">All series unlocked for 7 days · Instant access</div>
+        <div class="fine">US$12.99/week · Auto-renews · Cancel anytime<span class="ctag">合规③</span></div>
+      </div>
+
+      <div class="vip selected" style="margin-top:10px;">
+        <div class="name">Monthly VIP</div>
+        <div class="big">US$59.99 <span class="per">/month</span></div>
+        <div class="desc">All series unlocked for 30 days</div>
+        <div class="fine">US$59.99/month · Auto-renews · Cancel anytime</div>
+      </div>
+
+      <div class="rules">
+        <p><span class="ctag">合规②</span> Coins never expire · Refunds: via Apple only · Subject to review</p>
+        <div class="links">
+          <span>Restore Purchase</span><span>Terms of Use</span><span>Privacy Policy</span><span>Support</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<!-- ============ Legend ============ -->
+<div class="legend">
+  <h2>合规修正对照（虚线红标 ↔ 修正点）</h2>
+  <table>
+    <tr><th style="width:90px;">标记</th><th style="width:270px;">原页面问题</th><th>修正后方案</th><th style="width:190px;">依据</th></tr>
+    <tr>
+      <td><span class="n">①</span></td>
+      <td><span class="del">Bonus… valid for 7 days</span>：金币与赠币混用 7 天有效期表述，购买金币可能被误读为会过期</td>
+      <td><span class="ok">购买金币标注"永久有效"</span>；7 天有效期仅出现在赠币行内，并明确其为"活动奖励"</td>
+      <td>App Store 3.1.1<br>内购虚拟货币不得过期</td>
+    </tr>
+    <tr>
+      <td><span class="n">②</span></td>
+      <td><span class="del">金币为虚拟商品，购买后不予退款</span>（绝对化"不可退款"）</td>
+      <td><span class="ok">改为引导 Apple 官方退款渠道</span>（reportaproblem.apple.com），结果以 Apple 审核为准；重复扣款/未到账/订单异常引导联系客服</td>
+      <td>误导性表述风险</td>
+    </tr>
+    <tr>
+      <td><span class="n">③</span></td>
+      <td>订阅档位仅展示价格，<span class="del">缺少续费规则与取消方式</span></td>
+      <td><span class="ok">新增"订阅说明"购买前披露块</span>：订阅周期、当前价格、自动续费说明、续费价格、权益、取消方式；订阅管理页补充下次续费日期与金额、管理/取消入口</td>
+      <td>App Store 订阅展示要求</td>
+    </tr>
+    <tr>
+      <td><span class="n">④</span></td>
+      <td><span class="del">连续签到 7 天可领取 1,400 赠币</span>（核心权益绑定每日签到）</td>
+      <td><span class="ok">改为"每日奖励 —— 自愿领取"</span>：每日赠币定位为额外活动奖励，漏领不影响已购权益；主权益购买后立即到账</td>
+      <td>App Store 3.1.2<br>订阅权益不得绑定额外任务</td>
+    </tr>
+    <tr>
+      <td><span class="n">⑤</span></td>
+      <td><span class="del">金币券包 US$19.99/monthly 但无订阅说明</span>：用户易误认为一次性买断，未告知自动续费</td>
+      <td><span class="ok">明确券包为订阅制</span>：档位标注"/周 · 自动续费"，并补充订阅披露（周期/现价/续费价/每期发放内容/取消方式）；立即发放部分标注"金币永久有效"，每日领取部分定位为自愿活动奖励</td>
+      <td>App Store 订阅展示要求<br>+ 3.1.1 / 3.1.2</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============ Bilingual Copy Table ============ -->
+<div class="legend">
+  <h2>页面文案中英对照（多语言接入用）</h2>
+  <table>
+    <tr><th style="width:120px;">位置</th><th style="width:90px;">Key（示意）</th><th style="width:50%;">中文</th><th>English</th></tr>
+
+    <tr><td rowspan="5" style="font-weight:700;">充值 · 通用</td><td>nav_title</td><td>充值</td><td>Top Up</td></tr>
+    <tr><td>nav_restore</td><td>恢复购买</td><td>Restore</td></tr>
+    <tr><td>balance</td><td>我的余额</td><td>My Balance</td></tr>
+    <tr><td>sec_coins</td><td>金币充值 · 金币永久有效</td><td>Refill · Coins never expire</td></tr>
+    <tr><td>pack_note</td><td>金币永久有效 · 赠币为活动奖励（7 天）</td><td>Coins never expire · Bonus = activity reward (7 days)</td></tr>
+
+    <tr><td rowspan="6" style="font-weight:700;">周卡会员</td><td>name</td><td>周卡会员</td><td>Weekly VIP</td></tr>
+    <tr><td>desc</td><td>7 天全站畅看 · 立即生效</td><td>All series unlocked for 7 days · Instant access</td></tr>
+    <tr><td>fine</td><td>首周 US$9.99 → US$12.99/周 · 自动续费 · 可随时取消 · 每日 200 赠币为活动奖励</td><td>First week US$9.99 → US$12.99/week · Auto-renews · Cancel anytime · Daily 200 Bonus = activity reward</td></tr>
+    <tr><td>disclosure</td><td>US$29.99/周（首周 US$9.99）→ US$12.99/周 · 自动续费 · 到期前 24 小时可取消 · 取消入口：App Store</td><td>US$29.99/week (first week US$9.99) → US$12.99/week · Auto-renews · Cancel up to 24h before renewal · Cancel in App Store</td></tr>
+    <tr><td>badge_off</td><td>限时 33% OFF</td><td>33% OFF</td></tr>
+    <tr><td>daily_reward</td><td>每日可领 200 赠币 · 活动奖励 · 自愿领取</td><td>200 Bonus Coins daily · Activity reward · Optional claim</td></tr>
+
+    <tr><td rowspan="2" style="font-weight:700;">月卡会员</td><td>desc</td><td>30 天全站畅看 · 立即生效</td><td>All series unlocked for 30 days · Instant access</td></tr>
+    <tr><td>fine</td><td>US$59.99/月 · 自动续费 · 可随时取消</td><td>US$59.99/month · Auto-renews · Cancel anytime</td></tr>
+
+    <tr><td rowspan="5" style="font-weight:700;">金币券包</td><td>sec</td><td>金币券包 · 订阅制 · 自动续费</td><td>Coin Pack · Subscription · Auto-renews</td></tr>
+    <tr><td>desc</td><td>每期立即发放 549 金币（永久）+ 50 赠币</td><td>Each period: 549 Coins (never expire) + 50 Bonus, delivered instantly</td></tr>
+    <tr><td>fine</td><td>每日可领 200 赠币 · 活动奖励 · 自愿领取</td><td>200 Bonus Coins daily · Activity reward · Optional claim</td></tr>
+    <tr><td>disclosure</td><td>US$9.99/周 · 自动续费 · 到期前 24 小时可取消 · 每期发放 549 金币 + 50 赠币 · 取消入口：App Store</td><td>US$9.99/week · Auto-renews · Cancel up to 24h before renewal · Each period: 549 Coins + 50 Bonus · Cancel in App Store</td></tr>
+    <tr><td>price_tag</td><td>/周 · 自动续费</td><td>/week · Auto-renews</td></tr>
+
+    <tr><td rowspan="4" style="font-weight:700;">底部规则</td><td>rule_1</td><td>金币永久有效 · 赠币为活动奖励（7 天）</td><td>Coins never expire · Bonus = activity reward (7 days)</td></tr>
+    <tr><td>rule_2</td><td>退款：Apple 官方渠道 · 以 Apple 审核为准 · 订单异常联系客服</td><td>Refunds: via Apple only, subject to Apple's review · Order issues → Support</td></tr>
+    <tr><td>rule_3</td><td>订阅自动续费 · 可随时在 App Store 取消</td><td>Subscriptions auto-renew · Cancel anytime in App Store</td></tr>
+    <tr><td>links</td><td>服务条款（EULA）· 隐私政策 · 联系客服 · 管理订阅</td><td>Terms of Use (EULA) · Privacy Policy · Support · Manage Subscription</td></tr>
+
+    <tr><td rowspan="6" style="font-weight:700;">订阅管理</td><td>status_active</td><td>生效中</td><td>Active</td></tr>
+    <tr><td>status_expired</td><td>已到期</td><td>Expired</td></tr>
+    <tr><td>next_renewal</td><td>下次续费 2026/10/07 · US$12.99/周</td><td>Next renewal Oct 7, 2026 · US$12.99/week</td></tr>
+    <tr><td>btn_manage</td><td>管理订阅 ↗</td><td>Manage Subscription ↗</td></tr>
+    <tr><td>btn_cancel</td><td>取消自动续费</td><td>Cancel Auto-Renewal</td></tr>
+    <tr><td>jump_hint</td><td>管理订阅/取消将跳转 App Store 订阅管理页 ↗</td><td>Opens the App Store subscription page ↗</td></tr>
+
+    <tr><td rowspan="4" style="font-weight:700;">自动续费说明</td><td>charge</td><td>扣费方式：Apple ID 账户</td><td>Charged to: Apple ID account</td></tr>
+    <tr><td>renew</td><td>续费规则：到期前 24 小时未取消 → 自动续费</td><td>Renewal: auto-renews unless cancelled 24h before period end</td></tr>
+    <tr><td>after</td><td>取消之后：权益保留至本期结束</td><td>After cancel: benefits stay until period end</td></tr>
+    <tr><td>refund</td><td>退款说明：Apple 官方渠道 · 以审核为准</td><td>Refunds: via Apple only, subject to review</td></tr>
+
+    <tr><td rowspan="3" style="font-weight:700;">观剧页弹层</td><td>ep_price</td><td>本集价格 · 余额</td><td>Episode price · Balance</td></tr>
+    <tr><td>pack_note</td><td>每期发放：549 金币（永久）+ 50 赠币（活动奖励，7 天）</td><td>Each period: 549 Coins (never expire) + 50 Bonus (activity reward, 7 days)</td></tr>
+    <tr><td>daily</td><td>每日奖励：200 赠币 · 自愿领取</td><td>Daily reward: 200 Bonus · Optional claim</td></tr>
+  </table>
+  <p style="font-size:12px;color:#5c6b64;margin-top:12px;line-height:1.6;">多语言说明：① 文案统一采用「短语 + · 分隔」结构，避免长复合句，降低翻译损耗与各语言排版溢出风险；② US$ 价格、reportaproblem.apple.com、App Store 为专有名词不翻译；③ 拉丁语系（西/葡语）平均比中文长 30–40%，UI 需预留文案宽度余量或支持自动缩字号；④ 红色合规标注（合规①–⑤）为团队审阅用批注，非 APP 展示文案，上线时移除。</p>
+</div>
+
+</body>
+</html>
